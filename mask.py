@@ -3,7 +3,7 @@ import utils
 
 #########################################################################################################
 # Module Name:  Mask.py
-# Project:      Photolithography Mask Generation Software
+# Project:      Photolithography Mask Generator
 # Copyright (c) Young Lab - 2019
 
 # Description: To Be Written
@@ -17,6 +17,10 @@ class Mask(gdsCAD.core.Layout):
     def __init__(self, name='Mask', precision=1E-9):
         '''
          Mask object which is a subclass of the Layout object, automatically add a single top cell.
+         Takes two initialization variables, 'name' and 'precision.'  Name is a string which assigns a name
+         to the underlying gdsCAD Layout object behind this blank mask.  'Precision' sets the numerical precision
+         of the GDS layout.  Typically this will not need to be changed from its default value, but it may be necessary
+         for fracturing high precision e-beam lithography gds files.
         '''
 
         super(Mask, self).__init__(name=name, precision=precision)
@@ -26,7 +30,7 @@ class Mask(gdsCAD.core.Layout):
     def convertGDStoMask(self, directory):
         '''
          This function takes as input a string pointing to the directory of a GDS file.  It then takes that file
-         and adds the contents of that mask, layer by layer, into the currently instantiated Mask object.
+         and adds the contents of that gds file, layer by layer, into the currently instantiated Mask object.
 
         :param directory: String pointing to GDS file directory
         :return: None
@@ -41,8 +45,12 @@ class Mask(gdsCAD.core.Layout):
 class GCA200Mask(Mask):
     def __init__(self):
         '''
-         Mask designed to be compatible with stepper two, i.e., GCA200 -- automatically adds reticle alignment
-         marks.
+         Subclass of Mask object.
+
+         This Mask is designed to be compatible with stepper two, i.e., GCA200 -- automatically adds reticle alignment
+         marks, plus the available writable window.  It is useful to note that although patterns can be written anywhere
+         inside of the GCA alignment mark bounding box, stepper 2 has a 21mm diameter aperture (at
+         wafer scale), which means that the maximum exposable die size is 14.8mm x 14.8mm.
         '''
 
         super(GCA200Mask, self).__init__()
@@ -67,6 +75,14 @@ class GCA200Mask(Mask):
             raise(UserWarning("GDSII file has more than 1 distinct top-level cell, unable to import."))
         else:
             self['TOP'].add(layout.top_level()[0].copy('IMPORT_MASK_TOP'))
+
+    def DRCCheck(self):
+        '''
+
+         :return: Boolean -- true if all elements in mask follow design rule check for stepper 2
+        '''
+        raise(NotImplementedError)
+
 
 class GCA200QuadrantMask(GCA200Mask):
     def __init__(self):
@@ -109,8 +125,8 @@ class GCA200QuadrantMask(GCA200Mask):
          layers[2] --> lower left
          layers[3] --> upper left
 
-         :param mask:
-         :param layers:
+         :param mask: Mask Object -- gds file with pattern at wafer scale
+         :param layers: List -- list of layer id numbers that map to mask quadrants
          :return: None
         '''
         num_to_layer_dict = {layers[0]:"upper_right", layers[1]:
@@ -205,7 +221,7 @@ class GCA200QuadrantMask(GCA200Mask):
 
     def addAlignmentMark(self, type='global', quadrant='upper_right', standardKeys=True, dieStep=7.692, aperture=63.5, position=(0, 0), layer=1):
         '''
-         This method will add standard global alignment marks to one of the four quadrants.  If standardKeys is set
+         This method will add standard global or local alignment marks to one of the four quadrants.  If standardKeys is set
          to true, the method will add two alignment marks spaced appropriately such that standardKeys on the stepper
          can be used
 

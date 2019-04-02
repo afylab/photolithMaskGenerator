@@ -1,6 +1,16 @@
+#!/usr/bin/env python
+
 from mask import *
 import gdsCAD
 import utils
+
+###########################################################################
+#
+# This codes demonstrates various functionality of the code by compiling a
+# a complex 4-layer GCA mask from scratch and checking what the wafer
+# scale pattern looks like after the mask has been designed.
+#
+###########################################################################
 
 
 ##########################################################################
@@ -220,9 +230,9 @@ top_gate_overlap_array = gdsCAD.core.CellArray(top_gate_overlap_cell, rows=2, co
 mask.addToQuadrant("upper_left", top_gate_overlap_array)
 
 ####################################################################
-# Save Mask to Desktop                                             #
+# Save Mask                                                        #
 ####################################################################
-mask.save('~/Desktop/SuperlatticeOpticalMaskV6.gds')
+mask.save('Sample Masks/Sample4LayerMask.gds')
 
 ####################################################################
 # Create Waferscale Mask and add EBL Pattern                       #
@@ -269,11 +279,6 @@ ebl_dose_mark_cellarray = gdsCAD.core.CellArray(ebl_dose_mark_cell, rows=2, cols
 
 wafer_mask['TOP'].add(ebl_dose_mark_cellarray)
 
-wafer_mask.save('~/Desktop/WaferScale.gds')
+wafer_mask.save('Sample Masks/WaferScaleMask.gds')
 
-##########
-mask = Mask()
-layered_mask = GCA200QuadrantMask()
-mask.convertGDStoMask('/Users/liamcohen/Desktop/GDStoMaskTest.gds')
-layered_mask.convertWaferScaleMask(mask)
 
